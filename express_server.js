@@ -3,7 +3,9 @@ const app = express();
 const PORT = 8080;
 app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
-
+const { compile } = require("ejs");
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
 
 function generateRandomString() {
   var shortURL           = '';
@@ -29,6 +31,24 @@ app.get("/", (req, res) => {
 });
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
+  
+});
+app.get("/login", (req, res) => {
+  res.render("login");
+  
+});
+
+app.post("/login", (req,res) => {
+  //res.render("login");
+  console.log("Welcome!");
+  res.redirect("/urls");
+  res.cookie('username', 'Honeyeh', {domain: '/urls/new',path: '/urls', secure: true });
+});
+
+app.post(`/urls/:shortURL/delete`, (req, res) => {
+  console.log(req.params.shortURL);
+  delete urlDatabase[req.params.shortURL];
+  res.redirect("/urls");
 });
 
 app.get("/urls.json", (req, res) => {
