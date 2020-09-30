@@ -34,16 +34,25 @@ app.get("/urls/new", (req, res) => {
   
 });
 app.get("/login", (req, res) => {
-  res.render("login");
+  res.render("login", {error: null});
   
 });
 
 app.post("/login", (req,res) => {
-  //res.render("login");
   console.log("Welcome!");
-  res.redirect("/urls");
-  res.cookie('username', 'Honeyeh', {domain: '/urls/new',path: '/urls', secure: true });
+  if (req.body.username){
+    res.cookie("userCookie", req.body.username);
+   }
+   res.redirect("/urls");
+  // res.cookie('username', req.body.username);
 });
+
+
+app.post('/logout', (req, res) => {
+  res.clearCookie('userCookie');
+  res.redirect('/urls');
+});
+
 
 app.post(`/urls/:shortURL/delete`, (req, res) => {
   console.log(req.params.shortURL);
@@ -60,11 +69,6 @@ app.post(`/urls/:id`, (req, res) => {
   res.redirect(`/urls`);
  
 });
-
-
-
-
-
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
@@ -94,7 +98,10 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { 
+  urls: urlDatabase ,
+  username: req.cookies["userCookie"]
+};
   res.render("urls_index", templateVars);
 });
 
