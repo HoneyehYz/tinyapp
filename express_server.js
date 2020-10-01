@@ -59,6 +59,7 @@ app.post("/login", (req,res) => {
 
 app.post('/logout', (req, res) => {
   res.clearCookie('userCookie');
+  res.clearCookie('userCookies');
   res.redirect('/urls');
 });
 
@@ -86,24 +87,9 @@ app.post("/register", (req,res) => {
     password: password
   };
   res.cookie("userCookie", userID);
+  res.cookie("userCookies", email);
 console.log(users);
 
-  
-  // for (let userObj in users){
-  //   for (let item in users[userObj]) {
-  //     if(item === id){
-  //       users[userObj][item] = generateRandomString();
-  //       res.cookie("userCookie", users[userObj][item]);
-  //     }
-  //     if(item === email){
-  //       users[userObj][item] = req.body.email;
-  //     }
-  //     if(item === password){
-  //       users[userObj][item] = req.body.password;
-  //     }
-
-  //   }
-  // }
   
   res.redirect('/urls');
 
@@ -154,7 +140,8 @@ app.get("/u/:shortURL", (req, res) => {
 app.get("/urls", (req, res) => {
   const templateVars = { 
   urls: urlDatabase ,
-  username: req.cookies["userCookie"]
+  username: req.cookies["userCookie"],
+  email: req.cookies["userCookies"]
 };
   res.render("urls_index", templateVars);
 });
