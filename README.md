@@ -8,8 +8,8 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ![Urls page](https://github.com/HoneyehYz/tinyapp/blob/master/pictures/urls.png)
 ![Register Page](https://github.com/HoneyehYz/tinyapp/blob/master/pictures/register.png)
-![Login Page](https://github.com/HoneyehYz/tinyapp/blob/master/pictures/register.png)
-![Edit](https://github.com/HoneyehYz/tinyapp/blob/master/pictures/register.png)
+![Login Page](https://github.com/HoneyehYz/tinyapp/blob/master/pictures/login.png)
+![Edit](https://github.com/HoneyehYz/tinyapp/blob/master/pictures/edit.png)
 
 
 ## Dependencies
