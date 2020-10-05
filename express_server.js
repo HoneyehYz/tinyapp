@@ -1,4 +1,5 @@
 const express = require("express");
+const {checkEmail } = require('./help')
 const app = express();
 const PORT = 8080;
 app.set("view engine", "ejs");
@@ -41,11 +42,23 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = { 
+    urls: urlDatabase ,
+    username: req.cookies["userCookie"],
+    email: req.cookies["userCookies"]
+  
+  };
+  res.render("urls_new", templateVars);
 });
 
 app.get("/login", (req, res) => {
-  res.render("login", {error: null});
+  const templateVars = { 
+    urls: urlDatabase ,
+    username: req.cookies["userCookie"],
+    email: req.cookies["userCookies"]
+  
+  };
+  res.render("login", templateVars);
 });
 
 app.post("/login", (req,res) => {
@@ -60,7 +73,7 @@ app.post("/login", (req,res) => {
 app.post('/logout', (req, res) => {
   res.clearCookie('userCookie');
   res.clearCookie('userCookies');
-  res.redirect('/urls');
+  res.redirect('/login');
 });
 
 app.get("/register", (req, res) => {
@@ -86,14 +99,20 @@ app.post("/register", (req,res) => {
     email: email,
     password: password
   };
-  res.cookie("userCookie", userID);
-  res.cookie("userCookies", email);
-console.log(users);
+  if (checkEmail(users, email)) {
+    res.statusCode = 400;
+    res.send('EMAIL ALREADY IN USE')
+  } else {
+    res.cookie("userCookie", userID);
+    res.cookie("userCookies", email);
+    console.log(users);
+    res.redirect('/urls');
 
-  
-  res.redirect('/urls');
+  }
 
 });
+
+
 
 
 app.post(`/urls/:shortURL/delete`, (req, res) => {
@@ -142,6 +161,7 @@ app.get("/urls", (req, res) => {
   urls: urlDatabase ,
   username: req.cookies["userCookie"],
   email: req.cookies["userCookies"]
+
 };
   res.render("urls_index", templateVars);
 });
