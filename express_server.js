@@ -1,12 +1,20 @@
 const express = require("express");
-const {checkEmail } = require('./help')
+const {checkEmail, validateUser, matchName } = require('./help')
 const app = express();
 const PORT = 8080;
 app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
 const { compile } = require("ejs");
 const cookieParser = require('cookie-parser');
+const cookieSession = require("cookie-session");
+const bcrypt = require("bcrypt");
+const salt = bcrypt.genSaltSync(10);
 app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2']
+}));
+
 
 function generateRandomString() {
   var shortURL           = '';
@@ -22,7 +30,11 @@ function generateRandomString() {
 app.use(bodyParser.urlencoded({extended: true}));
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "SpT2N7": "http://www.google.com"
+};
+const urlDatabase1 = {      
+  b2xVn2: {longURL: "http://www.lighthouselabs.ca", userID: "userRandomID" },   
+  SpT2N7: {longURL: "https://www.google.ca", userID: "user2RandomID" }
 };
 const users = { 
   "userRandomID": {
@@ -40,21 +52,25 @@ const users = {
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
+app.get("/urls.json", (req, res) => {
+  res.json(urlDatabase);
+});
 
 app.get("/urls/new", (req, res) => {
   const templateVars = { 
     urls: urlDatabase ,
-    username: req.cookies["userCookie"],
+    users: req.cookies["userCookie"],
     email: req.cookies["userCookies"]
   
   };
   res.render("urls_new", templateVars);
 });
 
+//////////// LOGIN //////////////////
 app.get("/login", (req, res) => {
   const templateVars = { 
     urls: urlDatabase ,
-    username: req.cookies["userCookie"],
+    users: req.cookies["userCookie"],
     email: req.cookies["userCookies"]
   
   };
@@ -62,24 +78,31 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req,res) => {
-  console.log("Welcome!");
-  if (req.body.username){
-    res.cookie("userCookie", req.body.username);
-   }
-   res.redirect("/urls");
-  // res.cookie('username', req.body.username);
+  const email = req.body.email;
+    const password = req.body.password;
+    if (validateUser(bcrypt, users, email, password)){    
+        const id = matchName(users, email);
+        req.session.email = email;                              
+        req.session.id = id;
+        res.redirect('/urls');
+    } else {
+        res.redirect('/register');                         
+    }
 });
-
+///////////// LOGOUT /////////////////////
 app.post('/logout', (req, res) => {
   res.clearCookie('userCookie');
   res.clearCookie('userCookies');
   res.redirect('/login');
 });
 
+
+///////////// REGISTER /////////////////
+
 app.get("/register", (req, res) => {
-  const templateVars = {username: null}
+  const templateVars = {users: null}
   if(req.session && req.session.userCookie){
-      templateVars.username = req.session.userCookie
+      templateVars.users = req.session.userCookie
   }
   
   res.render("urls_register",templateVars);
@@ -89,7 +112,8 @@ app.post("/register", (req,res) => {
   console.log("Welcome!");
   const userID = generateRandomString();
   const email = req.body.email;
-  const password = req.body.password;
+  const prePassword = req.body.password;
+  const password = bcrypt.hashSync(prePassword, salt);
   console.log(userID);
   console.log(email);
   console.log(password);
@@ -112,9 +136,7 @@ app.post("/register", (req,res) => {
 
 });
 
-
-
-
+//////////  DELETE /////////
 app.post(`/urls/:shortURL/delete`, (req, res) => {
   console.log(req.params.shortURL);
   delete urlDatabase[req.params.shortURL];
@@ -146,7 +168,7 @@ app.post("/urls", (req, res) => {
 });
 
 app.get(`/urls/:shortURL`, (req, res) => {
-  const templateVars = { username: req.cookies["username"],shortURL: req.params.shortURL , longURL: urlDatabase[req.params.shortURL] };
+  const templateVars = { users: req.cookies["users"],shortURL: req.params.shortURL , longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
 });
 
@@ -159,7 +181,7 @@ app.get("/u/:shortURL", (req, res) => {
 app.get("/urls", (req, res) => {
   const templateVars = { 
   urls: urlDatabase ,
-  username: req.cookies["userCookie"],
+  users: req.cookies["userCookie"],
   email: req.cookies["userCookies"]
 
 };

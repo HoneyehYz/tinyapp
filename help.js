@@ -1,14 +1,31 @@
-
-
-const checkEmail = (users, email) => {
-    for (const userID in users) {
-      const currentUser = users[userID]
-      if (currentUser.email === email) {
-        console.log('Enter a new Email')
-        return true
-      } else if(currentUser.email === "") {
+const checkEmail = (email, password ) => { 
+      if (email === "" || password === "") {
+        return true;
       }
+    return false;
+  };
+
+
+const validateUser = (bcrypt, db, email, password ) => { 
+  for (const id in db) {
+    const currentUser = db[id];
+    if (email === currentUser.email){
+      if (bcrypt.compareSync(password, currentUser.password)) {
+        return true;
+      } else {
+        return false;
+      } 
     }
-    return null
-}
-module.exports = {checkEmail}
+  }
+   return false;
+};
+  
+const matchName = function(obj, key){  
+  for (let item in obj){
+      if(obj[item].email === key)
+      return obj[item].id;
+  }
+};
+
+
+  module.exports = {validateUser, checkEmail,matchName }
