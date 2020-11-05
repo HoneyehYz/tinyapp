@@ -167,6 +167,17 @@ app.post("/register", (req,res) => {
     req.session.email = email;             //set cookie session                 
     req.session.id = userID;
     res.redirect('/urls');
+  if (checkEmail(users, email)) {
+    res.statusCode = 400;
+    res.send('EMAIL ALREADY IN USE')
+  } else {
+    res.cookie("userCookie", userID);
+    res.cookie("userCookies", email);
+    console.log(users);
+    res.redirect('/urls');
+
+  }
+
   
 });
 
