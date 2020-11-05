@@ -49,8 +49,14 @@ const users = {
 }
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  const templateVars = { 
+    urls: urlDatabase ,
+    user: {email : ""}
+  
+  };
+  res.render("homepage", templateVars);         //Rendering homepage
 });
+
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
@@ -88,13 +94,22 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { 
-    urls: urlDatabase ,
-    user: {email : req.session.email},
+  const id = req.session.id;
+  const user = id ? users[id] : null; 
+  if (user) {
+    let templateVars = { "urls/new": usersURL(urlDatabase, id), user: {email: req.session.email} }; 
+    res.render("urls_new", templateVars);
+  } else {
+    let templateVars = { "urls/new": usersURL(urlDatabase, id), user: {email: ""} };
+      res.render("login", templateVars);
+  }
+  // const templateVars = { 
+  //   urls: urlDatabase ,
+  //   user: {email : req.session.email},
     
   
-  };
-  res.render("urls_new", templateVars);
+  // };
+  // res.render("urls_new", templateVars);
 });
 
 //////////// LOGIN ////////////////
@@ -143,23 +158,16 @@ app.post("/register", (req,res) => {
   console.log(userID);
   console.log(email);
   console.log(password);
-
   users[userID] = {
     id: userID,
     email: email,
     password: password
   };
-  if (checkEmail(users, email)) {
-    res.statusCode = 400;
-    res.send('EMAIL ALREADY IN USE')
-  } else {
-    res.cookie("userCookie", userID);
-    res.cookie("userCookies", email);
-    console.log(users);
+    console.log("redirecting");
+    req.session.email = email;             //set cookie session                 
+    req.session.id = userID;
     res.redirect('/urls');
-
-  }
-
+  
 });
 
 //////////  DELETE /////////
@@ -170,8 +178,14 @@ app.post(`/urls/:shortURL/delete`, (req, res) => {
 });
 
 app.get(`/urls/:shortURL`, (req, res) => {
-  const templateVars = { user: {email :req.session.email},shortURL: req.params.shortURL , longURL: urlDatabase[req.params.shortURL].longURL};
-  res.render("urls_show", templateVars);
+  const id = req.session.id;
+  const user = id ? users[id] : null; 
+  if(user){
+    const templateVars = { user: {email :req.session.email},shortURL: req.params.shortURL , longURL: urlDatabase[req.params.shortURL].longURL};
+    res.render("urls_show", templateVars);
+  } else {
+    res.redirect("/login");
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
